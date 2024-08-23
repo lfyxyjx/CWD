@@ -1,0 +1,11 @@
+path:  D:/AYOLOCode/UPRC2018/A
+train: D:/AYOLOCode/UPRC2018/A/images/train
+val:   D:/AYOLOCode/UPRC2018/A/images/testval
+test:  D:/AYOLOCode/UPRC2018/A/images/testval
+
+# Classes
+names:
+  0: holothurian
+  1: echinus
+  2: scallop
+  3: starfish

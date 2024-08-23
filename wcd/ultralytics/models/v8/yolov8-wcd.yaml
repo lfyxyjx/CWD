@@ -1,0 +1,52 @@
+nc: 4 # number of classes
+scales: # model compound scaling constants, i.e. 'model=yolov8n.yaml' will call yolov8.yaml with scale 'n'
+  # [depth, width, max_channels]
+  n: [0.33, 0.25, 1024]
+  s: [0.33, 0.50, 1024]
+  m: [0.67, 0.75, 768]
+  l: [1.00, 1.00, 512]
+  x: [1.00, 1.25, 512]
+
+# YOLOv8.0n backbone
+backbone:
+  # [from, repeats, module, args]
+  - [ -1, 1, Conv_wave, [ 64, 3, 2 ] ]    # 0-P1/2
+  - [ -1, 1, Conv_wave, [ 128, 3, 2 ] ]   # 1-P2/4
+  - [ -1, 3, CLF_Model, [ 128, True ] ]         # 2
+  - [ -1, 1, Conv_wave, [ 256, 3, 2 ] ]   # 3-P3/8
+  - [ -1, 6, CLF_Model, [ 256, True ] ]         # 4
+  - [ -1, 1, Conv_wave, [ 512, 3, 2 ] ]   # 5-P4/16
+  - [ -1, 6, CLF_Model, [ 512, True ] ]         # 6
+  - [ -1, 1, Conv_wave, [ 1024, 3, 2 ] ]  # 7-P5/32
+  - [ -1, 3, CLF_Model, [ 1024, True ] ]        # 8
+  - [ -1, 1, SPPF, [ 1024, 5 ] ]          # 9
+  - [ -1, 1, DA, []]                    # 10
+
+# YOLOv8.0n head
+head:
+  - [-1, 1, nn.Upsample, [None, 2, 'nearest']]       # 11
+  - [[-1, 6], 1, Concat, [1]]                        # 12
+  - [-1, 3, CLF_Model, [512]]                       # 13
+
+  - [-1, 1, nn.Upsample, [None, 2, 'nearest']]        # 14
+  - [[-1, 4], 1, Concat, [1]]                         # 15
+  - [-1, 3, CLF_Model, [256]]                        # 16
+
+  - [-1, 1, nn.Upsample, [None, 2, 'nearest']]        # 17
+  - [[-1, 2], 1, Concat, [1]]                         # 18
+  - [-1, 3, CLF_Model, [128]]                        # 19
+
+  - [-1, 1, PSConv, [128, 3, 2]]                    # 20
+  - [[-1, 16], 1, Concat, [1]]                        # 21
+  - [-1, 3, CLF_Model, [256]]                        # 22
+
+  - [-1, 1, PSConv, [256, 3, 2]]                    # 23
+  - [[-1, 13], 1, Concat, [1]]                        # 24
+  - [-1, 3, CLF_Model, [512]]                        # 25
+
+  - [-1, 1, PSConv, [512, 3, 2]]                    # 26
+  - [[-1, 10], 1, Concat, [1]]                         # 27
+  - [-1, 3, CLF_Model, [1024]]                       # 28
+
+  - [[19, 22, 25, 28], 1, Detect, [nc]]  # Detect(P2, P3, P4, P5)
+
